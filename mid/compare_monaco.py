@@ -289,8 +289,10 @@ def plot_real_comparison(item, num, name_a, name_b, prefix):
     axes[3].legend()
     
     plt.tight_layout()
+    output_dir = os.path.join(os.path.dirname(__file__), 'monaco_comparison_plots')
+    os.makedirs(output_dir, exist_ok=True)
     plot_name = f"monaco_{prefix}_{num}.png"
-    plot_path = os.path.join(os.path.dirname(__file__), plot_name)
+    plot_path = os.path.join(output_dir, plot_name)
     plt.savefig(plot_path, dpi=120)
     plt.close()
     print(f"  > 對照圖表已儲存至: {plot_path}")

@@ -228,7 +228,9 @@ def plot_bottleneck(item, b_num):
     axes[3].legend()
     
     plt.tight_layout()
-    plot_path = os.path.join(os.path.dirname(__file__), f'bottleneck_analysis_{b_num}.png')
+    output_dir = os.path.join(os.path.dirname(__file__), 'demo_analysis_plots')
+    os.makedirs(output_dir, exist_ok=True)
+    plot_path = os.path.join(output_dir, f'bottleneck_analysis_{b_num}.png')
     plt.savefig(plot_path, dpi=120)
     plt.close()
     print(f"> 遙測診斷圖表已儲存至: {plot_path}")
