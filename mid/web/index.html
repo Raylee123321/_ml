@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 AI 遙測影片同步分析平台</title>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 頂部標頭 -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="badge">AI ANALYSIS</span>
+                <h1>F1 Telemetry & Onboard Sync</h1>
+            </div>
+            <div id="session-info" class="session-info">
+                載入排位賽遙測數據中...
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <!-- 左欄：即時操作狀態欄 (Live Dashboard) -->
+            <div class="left-column-dashboard">
+                <div class="dashboard-card card animate-fade-in" style="animation-delay: 0.1s;">
+                    <h2>即時操作狀態欄 (Live Dashboard)</h2>
+                    <div class="drivers-row">
+                        <!-- 車手 A 狀態 (Mercedes - 亮綠/亮青) -->
+                        <div class="driver-panel driver-a">
+                            <div class="driver-header">
+                                <span class="driver-color-indicator bar-a"></span>
+                                <h3 id="driver-a-name">車手 A</h3>
+                            </div>
+                            <div class="telemetry-metrics">
+                                <div class="metric speedometer">
+                                    <span class="label">SPEED</span>
+                                    <div class="value-unit">
+                                        <span id="speed-a-val" class="digital-font">0</span>
+                                        <span class="unit">km/h</span>
+                                    </div>
+                                </div>
+                                <div class="metric pedal-bars">
+                                    <div class="pedal">
+                                        <span class="label">THROTTLE (油門)</span>
+                                        <div class="progress-container">
+                                            <div id="throttle-a-bar" class="progress-bar throttle" style="width: 0%;"></div>
+                                        </div>
+                                        <span id="throttle-a-txt" class="pedal-value">0%</span>
+                                    </div>
+                                    <div class="pedal">
+                                        <span class="label">BRAKE (煞車)</span>
+                                        <div class="progress-container">
+                                            <div id="brake-a-bar" class="progress-bar brake" style="width: 0%;"></div>
+                                        </div>
+                                        <span id="brake-a-txt" class="pedal-value">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="versus-divider">VS</div>
+
+                        <!-- 車手 B 狀態 (Red Bull - 紅/深藍) -->
+                        <div class="driver-panel driver-b">
+                            <div class="driver-header">
+                                <span class="driver-color-indicator bar-b"></span>
+                                <h3 id="driver-b-name">車手 B</h3>
+                            </div>
+                            <div class="telemetry-metrics">
+                                <div class="metric speedometer">
+                                    <span class="label">SPEED</span>
+                                    <div class="value-unit">
+                                        <span id="speed-b-val" class="digital-font">0</span>
+                                        <span class="unit">km/h</span>
+                                    </div>
+                                </div>
+                                <div class="metric pedal-bars">
+                                    <div class="pedal">
+                                        <span class="label">THROTTLE (油門)</span>
+                                        <div class="progress-container">
+                                            <div id="throttle-b-bar" class="progress-bar throttle" style="width: 0%;"></div>
+                                        </div>
+                                        <span id="throttle-b-txt" class="pedal-value">0%</span>
+                                    </div>
+                                    <div class="pedal">
+                                        <span class="label">BRAKE (煞車)</span>
+                                        <div class="progress-container">
+                                            <div id="brake-b-bar" class="progress-bar brake" style="width: 0%;"></div>
+                                        </div>
+                                        <span id="brake-b-txt" class="pedal-value">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 即時差值與跑圈進度 -->
+                    <div class="dashboard-footer-row">
+                        <div class="time-delta-box">
+                            <span class="label">即時時間差 (TIME DELTA)</span>
+                            <span id="live-delta-val" class="delta-value neutral">0.000s</span>
+                        </div>
+                        <div class="lap-progress-box">
+                            <span class="label">當前位置距離 (DISTANCE)</span>
+                            <span id="live-dist-val" class="digital-font">0m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中欄：影片與微觀數據 -->
+            <div class="center-column-video">
+                <!-- 影片播放器區域 -->
+                <div class="video-card card animate-fade-in">
+                    <div class="video-container">
+                        <video id="onboard-video" controls playsinline>
+                            <!-- 預設加載一個賽車 onboard 的開源視訊 -->
+                            <source src="https://assets.mixkit.co/videos/preview/mixkit-race-car-onboarding-speeding-on-the-track-40289-large.mp4" type="video/mp4">
+                            您的瀏覽器不支援 HTML5 影片播放。
+                        </video>
+                        <!-- 拖曳上傳影片覆蓋層 -->
+                        <div id="drop-zone" class="drop-zone">
+                            <div class="drop-zone-content">
+                                <span>🏎️ 拖曳你的 Onboard 影片 (.mp4) 到此處進行對比</span>
+                                <span class="subtext">或 <u>點擊上傳</u> 本地錄影</span>
+                                <input type="file" id="video-input" accept="video/mp4" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 方案 B：微觀遙測數據面板 -->
+                    <div id="micro-telemetry-panel" class="micro-telemetry-panel">
+                        <div class="micro-chart-header">
+                            <span class="micro-title">🔬 微觀數據對比 (關鍵點前後 100m)</span>
+                            <div class="micro-legend">
+                                <span class="leg-item"><span class="dot ant-speed"></span>ANT 速度</span>
+                                <span class="leg-item"><span class="dot ver-speed"></span>VER 速度</span>
+                                <span class="leg-item"><span class="dot ant-throttle"></span>ANT 油門</span>
+                                <span class="leg-item"><span class="dot ver-throttle"></span>VER 油門</span>
+                                <span class="leg-item"><span class="dot ant-brake"></span>ANT 煞車</span>
+                                <span class="leg-item"><span class="dot ver-brake"></span>VER 煞車</span>
+                            </div>
+                        </div>
+                        <div class="micro-chart-container" style="position: relative; height: 180px; width: 100%;">
+                            <canvas id="microTelemetryChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- 視訊設定列 -->
+                    <div class="video-controls-row">
+                        <button id="change-video-btn" class="btn btn-secondary">更換 Onboard 影片</button>
+                        <div class="sync-offset-container">
+                            <div class="sync-offset-control">
+                                <label for="offset-input">影片延遲修正 (秒):</label>
+                                <input type="number" id="offset-input" value="0.0" step="0.1" class="num-input">
+                                <span class="tooltip" title="調整影片與遙測數據的同步起始時間">ℹ️</span>
+                            </div>
+                            <div class="sync-instruction">
+                                💡 對齊教學：請將影片暫停在**賽車跨越起點線（計時開始）**的瞬間，將該播放秒數以**負數**填入上方（例如影片 8.5 秒跨線，請填入 <b>-8.5</b>）。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右大欄：AI 診斷卡片清單 -->
+            <div class="right-column">
+                <div class="insights-card card animate-fade-in" style="animation-delay: 0.2s;">
+                    <div class="insights-header">
+                        <h2>AI 行為瓶頸與優勢清單</h2>
+                        <span class="subtitle">點擊卡片影片將直接跳轉至失誤點</span>
+                    </div>
+                    <div id="events-list" class="events-list">
+                        <!-- 卡片會被 JS 動態生成 -->
+                        <div class="loading-placeholder">正在掃描 AI 診斷報告...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下方：全圈遙測互動圖表 -->
+        <div class="bottom-layout">
+            <div class="chart-card card animate-fade-in" style="animation-delay: 0.3s;">
+                <div class="chart-header">
+                    <h2>全圈遙測數據對照曲線 (Telemetry Overview)</h2>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="color-dot speed-a"></span>速度 (A)</span>
+                        <span class="legend-item"><span class="color-dot speed-b"></span>速度 (B)</span>
+                        <span class="legend-item"><span class="color-dot throttle"></span>油門</span>
+                        <span class="legend-item"><span class="color-dot brake"></span>煞車</span>
+                    </div>
+                </div>
+                <div class="chart-container" style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="telemetryChart"></canvas>
+                </div>
+                <div class="chart-help-text">
+                    * 拖曳圖表可進行局部縮放。滑動上方影片進度條，圖表中的紅色垂直指示線將實時移動對齊。
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js?v=1.0.3"></script>
+</body>
+</html>

@@ -99,3 +99,24 @@ python analyze.py
 報告與分析對照圖表已全部生成！
 ================================================================================
 ```
+
+---
+
+## 網頁版互動同步平台 (Web Sync Dashboard)
+
+我們提供了互動式網頁儀表板，將 Onboard 影片與遙測曲線、AI 診斷卡片完美對齊。
+
+### 1. 導出遙測與 AI 分析數據
+運行以下命令，將對齊遙測與 AI 預測結果生成為 JSON 檔案：
+```bash
+python export_web_data.py
+```
+
+### 2. 啟動 Web 服務並體驗
+切換至 `web` 目錄，利用 Python 啟動輕量伺服器，並使用瀏覽器訪問 `http://localhost:8000`：
+```bash
+cd web
+python -m http.server 8000
+```
+你可以將你自己的 Monaco 站 onboard MP4 錄影直接拖曳進網頁中，進行時間-距離同步分析，並使用 AI 卡片一鍵跳轉失誤點！
+詳細說明請參見 [web/README.md](file:///e:/co/_ml/mid/web/README.md)。

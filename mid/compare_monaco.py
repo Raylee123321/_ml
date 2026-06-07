@@ -71,18 +71,24 @@ def load_session_and_laps(year=2026, gp='Monaco', driver_a='ANT', driver_b='VER'
     telemetry_b = lap_b.get_telemetry()
     
     # 建立與對齊遙測數據
-    max_dist = min(telemetry_a['Distance'].max(), telemetry_b['Distance'].max())
-    grid = np.arange(0, max_dist, 2.0) # 每 2 米一個點
+    # 由於車手走線不同，每圈實際行駛總里程不同（ANT: 3269.8m, VER: 3292.2m）。
+    # 為了讓終點時間差精確等於排位賽單圈差值 (0.043s)，我們將兩人的距離進行等比例歸一化重映射
+    target_max_dist = 3270.0
     
-    speed_a = np.interp(grid, telemetry_a['Distance'], telemetry_a['Speed'])
-    throttle_a = np.interp(grid, telemetry_a['Distance'], telemetry_a['Throttle'])
-    brake_a = np.interp(grid, telemetry_a['Distance'], telemetry_a['Brake'].astype(float) * 100.0)
-    time_a = np.interp(grid, telemetry_a['Distance'], telemetry_a['SessionTime'].dt.total_seconds())
+    dist_a_normalized = (telemetry_a['Distance'] / telemetry_a['Distance'].max()) * target_max_dist
+    dist_b_normalized = (telemetry_b['Distance'] / telemetry_b['Distance'].max()) * target_max_dist
     
-    speed_b = np.interp(grid, telemetry_b['Distance'], telemetry_b['Speed'])
-    throttle_b = np.interp(grid, telemetry_b['Distance'], telemetry_b['Throttle'])
-    brake_b = np.interp(grid, telemetry_b['Distance'], telemetry_b['Brake'].astype(float) * 100.0)
-    time_b = np.interp(grid, telemetry_b['Distance'], telemetry_b['SessionTime'].dt.total_seconds())
+    grid = np.arange(0, target_max_dist, 2.0) # 每 2 米一個點
+    
+    speed_a = np.interp(grid, dist_a_normalized, telemetry_a['Speed'])
+    throttle_a = np.interp(grid, dist_a_normalized, telemetry_a['Throttle'])
+    brake_a = np.interp(grid, dist_a_normalized, telemetry_a['Brake'].astype(float) * 100.0)
+    time_a = np.interp(grid, dist_a_normalized, telemetry_a['Time'].dt.total_seconds())
+    
+    speed_b = np.interp(grid, dist_b_normalized, telemetry_b['Speed'])
+    throttle_b = np.interp(grid, dist_b_normalized, telemetry_b['Throttle'])
+    brake_b = np.interp(grid, dist_b_normalized, telemetry_b['Brake'].astype(float) * 100.0)
+    time_b = np.interp(grid, dist_b_normalized, telemetry_b['Time'].dt.total_seconds())
     
     df_aligned_a = pd.DataFrame({
         'Distance': grid, 'Speed': speed_a, 'Throttle': throttle_a, 'Brake': brake_a, 'Time': time_a
