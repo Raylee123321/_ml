@@ -1,5 +1,7 @@
 # F1 賽車遙測行為預測與瓶頸分析 
-
+## 本專案均由AI製作 
+使用google Antigravity IDE  
+ 
 本專案實作了一個基於深度學習的 F1 遙測數據分析系統。不同於一般的單純圖表繪製，本系統透過訓練一個多任務神經網路（BiLSTM + Self-Attention），將兩位車手的遙測數據輸入模型，讓 AI 自動識別駕駛行為的瓶頸，並生成精準的自然語言分析報告。
 
 例如：
@@ -44,5 +46,6 @@
 * [train.py](file:///e:/co/_ml/mid/train.py)：數據載入與多任務聯合訓練。
 * [analyze.py](file:///e:/co/_ml/mid/analyze.py)：滾動掃描遙測並生成 AI 行為分析報告與視覺化對比圖。
 * [README.md](file:///e:/co/_ml/mid/README.md)：本說明文件。
+
 
 
